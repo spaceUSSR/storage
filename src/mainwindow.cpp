@@ -5,16 +5,20 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QMessageBox>
+#include "login.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setCentralWidget(ui->tableView);
 
-    openDatabase("root", "cvjktycrjt22", "127.0.0.1", "test");
-    if(!opened)
-        return;
+    Login loginWin(&database);
+    loginWin.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    loginWin.show();
+    loginWin.exec();
 
     QSqlQuery query = QSqlQuery(database);
     if(!query.exec("select * from goods"))
@@ -23,13 +27,13 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << query.lastError().driverText();
         return;
     }
+
     model = new QSqlTableModel(this, database);
     model->setTable("goods");
     model->select();
 
     ui->tableView->setModel(model);
     ui->tableView->showColumn(10);
-    setCentralWidget(ui->tableView);
 }
 
 MainWindow::~MainWindow()

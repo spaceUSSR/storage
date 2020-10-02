@@ -1,11 +1,13 @@
 #include "login.h"
 #include "ui_login.h"
-
-Login::Login(QWidget *parent) :
-    QWidget(parent),
+#include <QDebug>
+Login::Login(QSqlDatabase* database, QWidget *parent) :
+    QDialog(parent),
     ui(new Ui::Login)
 {
+
     ui->setupUi(this);
+    this->database = database;
 }
 
 Login::~Login()
@@ -22,7 +24,22 @@ void Login::on_loginButton_clicked()
 {
     username = ui->nameEdit->text();
     password = ui->passwordEdit->text();
-    this->close();
+    *database = QSqlDatabase::addDatabase("QMYSQL");
+    database->setDatabaseName("test");
+    database->setHostName("127.0.0.1");
+    database->setUserName(username);
+    database->setPassword(password);
+    if(database->open())
+        this->close();
+    else
+    {
+        ui->errortextLabel->setText("Error!");
+    }
+}
+
+QSqlDatabase Login::getDatabase()
+{
+    return *database;
 }
 
 QString Login::getPassword()
