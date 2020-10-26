@@ -18,12 +18,19 @@ public:
     ~MainWindow();
 
 
+private slots:
+    void on_actionAbout_triggered();
+
+    void on_actionNew_table_triggered();
+
 private:
     Ui::MainWindow *ui;
     QSqlTableModel *model;
     bool opened = false;
     QSqlDatabase database;
+    QStringList tablesList;
 
-    void openDatabase(QString username, QString password, QString hostname, QString dbName);
+private:
+    void getTables();
 };
 #endif // MAINWINDOW_H
