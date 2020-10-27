@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "newtable.h"
+#include "addline.h"
 #include "ui_mainwindow.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -26,17 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     getTables();
     ui->listWidget->addItems(tablesList);
 
-    QSqlQuery query = QSqlQuery(database);
-    if(!query.exec("select * from " + tablesList[0]))
-    {
-        qDebug() << query.lastError().databaseText();
-        qDebug() << query.lastError().driverText();
-        return;
-    }
     model = new QSqlTableModel(this, database);
-    model->setTable("product");
-    model->select();
-
     ui->tableView->setModel(model);
 }
 
@@ -56,11 +47,18 @@ void MainWindow::getTables()
         return;
     }
 
-    for (int i = 0; query.next(); i++)
+    while(query.next())
     {
-        QString table = query.value(i).toString();
+        QString table = query.value(0).toString();
         tablesList << table;
     }
+}
+
+void MainWindow::changeActiveTable(QString& active)
+{
+    activeTable = active;
+    model->setTable(activeTable);
+    model->select();
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -73,7 +71,20 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionNew_table_triggered()
 {
-    newtable ntWindow;
+    newtable ntWindow(&database);
     ntWindow.show();
     ntWindow.exec();
+}
+
+void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
+{
+    QString table = item->text();
+    changeActiveTable(table);
+}
+
+void MainWindow::on_actionAdd_new_line_triggered()
+{
+    AddLine addlineWindow;
+    addlineWindow.show();
+    addlineWindow.exec();
 }

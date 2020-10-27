@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSqlTableModel>
+#include <QListWidgetItem>
 #include <QString>
 
 QT_BEGIN_NAMESPACE
@@ -23,14 +24,18 @@ private slots:
 
     void on_actionNew_table_triggered();
 
+    void on_listWidget_itemClicked(QListWidgetItem *item);
+
+    void on_actionAdd_new_line_triggered();
+
 private:
     Ui::MainWindow *ui;
     QSqlTableModel *model;
-    bool opened = false;
     QSqlDatabase database;
     QStringList tablesList;
-
+    QString activeTable;
 private:
-    void getTables();
+    void getTables(); //get tables list for curent database
+    void changeActiveTable(QString& active); //change active table for model
 };
 #endif // MAINWINDOW_H
