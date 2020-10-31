@@ -1,12 +1,21 @@
 #include "addline.h"
 #include "ui_addline.h"
 #include <QMessageBox>
+#include <QSqlQuery>
+#include <QDebug>
+#include <QSqlError>
 
-AddLine::AddLine(QWidget *parent) :
+#define INSERT_TO(table_name, values) ("INSERT " + (table_name) + " VALUES ( " + (values) + " );")
+#define INSERT_STRING(string) (" '" + (string) + "' ")
+#define INSERT_INT(num) (" " + (num) + " ")
+
+AddLine::AddLine(QSqlDatabase& db, QString& table, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddLine),
     changed(false)
 {
+    this->db = db;
+    this->table = table;
     ui->setupUi(this);
 }
 
@@ -44,4 +53,22 @@ void AddLine::closeEvent(QCloseEvent *event)
             break;
         }
     }
+}
+
+void AddLine::on_okButton_clicked()
+{
+
+    QString queryStr = INSERT_TO(table, INSERT_STRING(ui->nameEdit->text()) + ", "
+                                      + INSERT_INT(ui->priceSpinBox->text()) + ", "
+                                      + INSERT_INT(ui->weightSpinBox->text()) + ", "
+                                      + INSERT_STRING(ui->dateEdit->text()) + ", "
+                                      + INSERT_STRING(ui->providerEdit->text()) + ", "
+                                      + INSERT_STRING(ui->plainTextEdit->toPlainText()));
+    QSqlQuery query(db);
+    if(!query.exec(queryStr))
+    {
+        qDebug() << query.lastError().text();
+    }
+    changed = false;
+    close();
 }

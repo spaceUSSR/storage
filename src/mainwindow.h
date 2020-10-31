@@ -28,6 +28,8 @@ private slots:
 
     void on_actionAdd_new_line_triggered();
 
+    void slotCustomMenuRequested(QPoint pos);
+
 private:
     Ui::MainWindow *ui;
     QSqlTableModel *model;
@@ -37,5 +39,6 @@ private:
 private:
     void getTables(); //get tables list for curent database
     void changeActiveTable(QString& active); //change active table for model
+    void createUI();
 };
 #endif // MAINWINDOW_H
