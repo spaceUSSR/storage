@@ -30,6 +30,10 @@ private slots:
 
     void slotCustomMenuRequested(QPoint pos);
 
+    void slotDeleteActiveTable();
+
+    void slotRenameActiveTable();
+
 private:
     Ui::MainWindow *ui;
     QSqlTableModel *model;

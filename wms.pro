@@ -9,18 +9,17 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    src/newtable.cpp \
+    src/InpuDialog.cpp \
     src/addline.cpp \
     src/main.cpp \
     src/mainwindow.cpp
 
 HEADERS += \
-    src/newtable.h \
+    src/InpuDialog.h \
     src/addline.h \
     src/mainwindow.h
 
 FORMS += \
-    src/newtable.ui \
     src/addline.ui \
     src/mainwindow.ui
 
