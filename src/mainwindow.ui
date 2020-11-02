@@ -18,24 +18,18 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1">
+     <widget class="QTableView" name="tableView"/>
+    </item>
     <item row="0" column="0">
-     <widget class="QListWidget" name="listWidget">
+     <widget class="QListView" name="listView">
       <property name="maximumSize">
        <size>
         <width>200</width>
         <height>16777215</height>
        </size>
       </property>
-      <property name="font">
-       <font>
-        <family>Calibri</family>
-        <pointsize>11</pointsize>
-       </font>
-      </property>
      </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QTableView" name="tableView"/>
     </item>
    </layout>
   </widget>

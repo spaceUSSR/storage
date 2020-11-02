@@ -10,9 +10,11 @@
 #include <QAction>
 #include <QInputDialog>
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , lmodel(new QStringListModel(this))
 {
     ui->setupUi(this);
     createUI();
@@ -24,24 +26,25 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::getTables()
+QStringList MainWindow::getTablesList()
 {
+
     QSqlQuery query = QSqlQuery(database);
+    QStringList list;
     if(!query.exec("SHOW TABLES;"))
     {
         qDebug() << query.lastError().databaseText();
         qDebug() << query.lastError().driverText();
-        return;
     }
 
     while(query.next())
     {
-        QString table = query.value(0).toString();
-        tablesList << table;
+        list << query.value(0).toString();
     }
+    return list;
 }
 
-void MainWindow::changeActiveTable(QString& active)
+void MainWindow::slotChangeActiveTable(QString& active)
 {
     activeTable = active;
     model->setTable(activeTable);
@@ -60,16 +63,23 @@ void MainWindow::createUI()
         qDebug() << database.lastError();
 
     //init the tables list
-    getTables();
-    ui->listWidget->addItems(tablesList);
+    tablesList = getTablesList();
+    lmodel->setStringList(tablesList);
+    ui->listView->setModel(lmodel);
 
     model = new QSqlTableModel(this, database);
     ui->tableView->setModel(model);
 
     //create context menu for the tables list
-    ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->listWidget, SIGNAL(customContextMenuRequested(QPoint)),
+    ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->listView, SIGNAL(customContextMenuRequested(QPoint)),
             this, SLOT(slotCustomMenuRequested(QPoint)));
+
+    //to update views data
+    connect(this, SIGNAL(databaseChanged()),
+            this, SLOT(slotUpdateViews()));
+    connect(this, SIGNAL(activeTableChanged(QString&)),
+            this, SLOT(slotChangeActiveTable(QString&)));
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -101,13 +111,8 @@ void MainWindow::on_actionNew_table_triggered()
         {
             qDebug() << "Error::" << query.lastError().databaseText();
         }
+        emit databaseChanged();
     }
-}
-
-void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
-{
-    QString table = item->text();
-    changeActiveTable(table);
 }
 
 void MainWindow::on_actionAdd_new_line_triggered()
@@ -115,6 +120,7 @@ void MainWindow::on_actionAdd_new_line_triggered()
     AddLine addlineWindow(database, activeTable);
     addlineWindow.show();
     addlineWindow.exec();
+    emit databaseChanged();
 }
 
 void MainWindow::slotCustomMenuRequested(QPoint pos)
@@ -134,7 +140,7 @@ void MainWindow::slotCustomMenuRequested(QPoint pos)
     menu->addAction(deleteTable);
     menu->addAction(renameTable);
 
-    menu->popup(ui->listWidget->viewport()->mapToGlobal(pos));
+    menu->popup(ui->listView->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::slotDeleteActiveTable()
@@ -144,6 +150,7 @@ void MainWindow::slotDeleteActiveTable()
     {
         qDebug() << query.lastError().text();
     }
+    emit databaseChanged();
 }
 
 void MainWindow::slotRenameActiveTable()
@@ -158,6 +165,19 @@ void MainWindow::slotRenameActiveTable()
         {
             qDebug() << "Error::" << query.lastError().databaseText();
         }
+        emit databaseChanged();
     }
 }
 
+void MainWindow::slotUpdateViews()
+{
+//    model->select();
+    tablesList = getTablesList();
+    lmodel->setStringList(tablesList);
+}
+
+void MainWindow::on_listView_clicked(const QModelIndex &index)
+{
+    QString table = tablesList.at(index.row());
+    emit activeTableChanged(table);
+}
