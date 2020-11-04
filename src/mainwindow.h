@@ -3,9 +3,10 @@
 
 #include <QMainWindow>
 #include <QSqlTableModel>
-#include <QListWidgetItem>
 #include <QStringListModel>
+#include <QList>
 #include <QString>
+#include <QMap>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,7 +34,7 @@ private slots:
 
     void slotRenameActiveTable();
 
-    void slotUpdateViews();
+    void slotUpdateListView();
 
     void on_listView_clicked(const QModelIndex &index);
 
@@ -45,7 +46,7 @@ private slots:
     void on_actionSave_triggered();
 
 signals:
-    void databaseChange(); //In database was added/deleted/renamed table
+    void tableListChange(); //In database was added/deleted/renamed table
 
     void activeTableChange(QString&);
 
@@ -53,11 +54,11 @@ signals:
 
 private:
     Ui::MainWindow *ui;
-    QSqlTableModel *model;
     QStringListModel* lmodel;
     QSqlDatabase database;
     QStringList tablesList;
     QString activeTable;
+    QMap<QString, QSqlTableModel*> tableMap; // key- table name, value - table model
 private:
     QStringList getTablesList(); //get tables list for curent database
     void createUI();

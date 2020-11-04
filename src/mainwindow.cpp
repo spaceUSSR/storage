@@ -14,7 +14,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , lmodel(new QStringListModel(this))
+    , lmodel(new QStringListModel())
 {
     ui->setupUi(this);
     createUI();
@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     database.close();
+    delete lmodel;
     delete ui;
 }
 
@@ -45,14 +46,12 @@ QStringList MainWindow::getTablesList()
 void MainWindow::slotChangeActiveTable(QString& active)
 {
     activeTable = active;
-    model->setTable(activeTable);
-    model->select();
+    ui->tableView->setModel(tableMap[active]);
 }
 
 void MainWindow::slotTableChanged()
 {
-    model->setTable(activeTable);
-    model->select();
+
 }
 
 void MainWindow::createUI()
@@ -71,18 +70,14 @@ void MainWindow::createUI()
     lmodel->setStringList(tablesList);
     ui->listView->setModel(lmodel);
 
-    model = new QSqlTableModel(this, database);
-    model->setEditStrategy(QSqlTableModel::OnManualSubmit);
-    ui->tableView->setModel(model);
-
     //create context menu for the tables list
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listView, SIGNAL(customContextMenuRequested(QPoint)),
             this, SLOT(slotCustomMenuRequested(QPoint)));
 
     //to update views data
-    connect(this, SIGNAL(databaseChange()),
-            this, SLOT(slotUpdateViews()));
+    connect(this, SIGNAL(tableListChange()),
+            this, SLOT(slotUpdateListView()));
     connect(this, SIGNAL(activeTableChange(QString&)),
             this, SLOT(slotChangeActiveTable(QString&)));
     connect(this, SIGNAL(tableChange()),
@@ -118,7 +113,11 @@ void MainWindow::on_actionNew_table_triggered()
         {
             qDebug() << "Error::" << query.lastError().databaseText();
         }
-        emit databaseChange();
+        else
+        {
+            tablesList << table;
+        }
+        emit tableListChange();
     }
 }
 
@@ -153,47 +152,79 @@ void MainWindow::slotCustomMenuRequested(QPoint pos)
 void MainWindow::slotDeleteActiveTable()
 {
     QSqlQuery query(database);
-    if(!query.exec(QString("DROP TABLE " + activeTable)))
+    if(query.exec(QString("DROP TABLE " + activeTable)) && tablesList.contains(activeTable))
+    {
+        //remove table from list and map
+        tablesList.removeAll(activeTable);
+        delete tableMap[activeTable];
+        tableMap.remove(activeTable);
+
+        emit tableListChange();
+    }
+    else
     {
         qDebug() << query.lastError().text();
     }
-    emit databaseChange();
 }
+
 
 void MainWindow::slotRenameActiveTable()
 {
     InputDialog dialog("Новое название таблицы:", QRegExp("^[a-zA-Z0-9]+$"));
     dialog.show();
+
     if(dialog.exec() == QDialog::Accepted)
     {
         QString table = dialog.getText();
         QSqlQuery query(database);
-        if(!query.exec(QString("RENAME TABLE " + activeTable + " TO " + table)))
+
+        if(query.exec(QString("RENAME TABLE " + activeTable + " TO " + table)) && tableMap.contains(activeTable))
+        {
+            //rename table in the list
+            int index = tablesList.indexOf(activeTable);
+            tablesList[index] = table;
+
+            //rename key in the map
+            QSqlTableModel* tmp = tableMap[activeTable];
+            tableMap.remove(activeTable);
+            tableMap.insert(table, tmp);
+
+            activeTable = table;
+
+            emit tableListChange();
+        }
+        else
         {
             qDebug() << "Error::" << query.lastError().databaseText();
         }
-        emit databaseChange();
     }
 }
-
-void MainWindow::slotUpdateViews()
+/* Update tables list view */
+void MainWindow::slotUpdateListView()
 {
-//    model->select();
-    tablesList = getTablesList();
     lmodel->setStringList(tablesList);
 }
 
+/* Selected other table */
 void MainWindow::on_listView_clicked(const QModelIndex &index)
 {
-    QString table = tablesList.at(index.row());
+    QString table = tablesList[index.row()];
+    //if table hasn't yet added to map, to add and select data
+    if(!tableMap.contains(table))
+    {
+        tableMap.insert(table, new QSqlTableModel(this, database));
+        tableMap[table]->setEditStrategy(QSqlTableModel::OnManualSubmit);
+        tableMap[table]->setTable(table);
+        tableMap[table]->select();
+    }
     emit activeTableChange(table);
 }
 
 /* Save changes for active table */
 void MainWindow::on_actionSave_triggered()
 {
-    if(model->submitAll())
+    if(tableMap[activeTable]->submitAll())
     {
-        model->database().commit();
+        tableMap[activeTable]->database().commit();
     }
 }
