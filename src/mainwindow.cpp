@@ -8,8 +8,6 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QAction>
-#include <QInputDialog>
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -27,6 +25,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/* Get tables list in curent database */
 QStringList MainWindow::getTablesList()
 {
     QSqlQuery query = QSqlQuery(database);
@@ -53,6 +52,7 @@ void MainWindow::slotTableChanged()
 {
 
 }
+
 
 void MainWindow::createUI()
 {
@@ -84,13 +84,6 @@ void MainWindow::createUI()
             this, SLOT(slotTableChanged()));
 }
 
-void MainWindow::on_actionAbout_triggered()
-{
-    QMessageBox msg;
-    msg.setText("Authors: Dyakov Daniil, Borisov Alexander");
-    msg.setButtonText(QMessageBox::Ok, "OK, I understand!");
-    msg.exec();
-}
 
 void MainWindow::on_actionNew_table_triggered()
 {
@@ -121,14 +114,26 @@ void MainWindow::on_actionNew_table_triggered()
     }
 }
 
+
+/* Add new line to model */
 void MainWindow::on_actionAdd_new_line_triggered()
 {
-    AddLine addlineWindow(database, activeTable);
-    addlineWindow.show();
-    addlineWindow.exec();
-    emit tableChange();
+    AddLine dialog;
+    dialog.show();
+    dialog.exec();
+
+    QSqlTableModel* model = tableMap[activeTable];
+    int row = model->rowCount();
+    model->insertRows(row, 1);
+    model->setData(model->index(row, 0), dialog.Name());
+    model->setData(model->index(row, 1), dialog.Price());
+    model->setData(model->index(row, 2), dialog.Weight());
+    model->setData(model->index(row, 3), dialog.Date());
+    model->setData(model->index(row, 4), dialog.Provider());
+    model->setData(model->index(row, 5), dialog.Description());
 }
 
+/* Open context menu for listView */
 void MainWindow::slotCustomMenuRequested(QPoint pos)
 {
     QMenu* menu = new QMenu(this);
@@ -227,4 +232,13 @@ void MainWindow::on_actionSave_triggered()
     {
         tableMap[activeTable]->database().commit();
     }
+}
+
+/* Get information about program */
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox msg;
+    msg.setText("Authors: Dyakov Daniil, Borisov Alexander");
+    msg.setButtonText(QMessageBox::Ok, "OK, I understand!");
+    msg.exec();
 }
