@@ -1,7 +1,7 @@
 #include "mainwindow.h"
-#include "InpuDialog.h"
-#include "addline.h"
 #include "ui_mainwindow.h"
+#include "addline.h"
+#include "InpuDialog.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -41,6 +41,29 @@ QStringList MainWindow::getTablesList()
     }
     return list;
 }
+
+void MainWindow::setDataToDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index)
+{
+    int selectedRow = index.row();
+    dialog->setName(model->data(model->index(selectedRow, 0)).toString());
+    dialog->setPrice(model->data(model->index(selectedRow, 1)).toInt());
+    dialog->setWeight(model->data(model->index(selectedRow, 2)).toInt());
+    dialog->setDate(model->data(model->index(selectedRow, 3)).toDate());
+    dialog->setProveder(model->data(model->index(selectedRow, 4)).toString());
+    dialog->setDescription(model->data(model->index(selectedRow, 5)).toString());
+}
+
+void MainWindow::getDataFromDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index)
+{
+    int selectedRow = index.row();
+    model->setData(model->index(selectedRow, 0), dialog->Name());
+    model->setData(model->index(selectedRow, 1), dialog->Price());
+    model->setData(model->index(selectedRow, 2), dialog->Weight());
+    model->setData(model->index(selectedRow, 3), dialog->Date());
+    model->setData(model->index(selectedRow, 4), dialog->Provider());
+    model->setData(model->index(selectedRow, 5), dialog->Description());
+}
+
 
 void MainWindow::slotChangeActiveTable(QString& active)
 {
@@ -95,12 +118,12 @@ void MainWindow::on_actionNew_table_triggered()
         QSqlQuery query(database);
         QString querystr = "CREATE TABLE " + table +
                 " ("
-                "Name VARCHAR(30), "
-                "Price INT, "
-                "Weight INT, "
-                "Data VARCHAR(11),"
-                "Provider VARCHAR(30), "
-                "Description TEXT "
+                "Название VARCHAR(30), "
+                "Цена INT, "
+                "Вес INT, "
+                "Дата DATE,"
+                "Поставщик VARCHAR(30), "
+                "Описание TEXT "
                 ")";
         if(!query.exec(querystr))
         {
@@ -241,4 +264,39 @@ void MainWindow::on_actionAbout_triggered()
     msg.setText("Authors: Dyakov Daniil, Borisov Alexander");
     msg.setButtonText(QMessageBox::Ok, "OK, I understand!");
     msg.exec();
+}
+
+void MainWindow::on_actionEdit_triggered()
+{
+    AddLine dialog;
+    QSqlTableModel* model = tableMap[activeTable];
+    setDataToDialog(model, &dialog, active);
+
+    dialog.show();
+    if(dialog.exec() == QDialog::Accepted)
+    {
+        getDataFromDialog(model, &dialog, active);
+    }
+}
+
+void MainWindow::on_tableView_clicked(const QModelIndex &index)
+{
+    active = index;
+}
+
+void MainWindow::on_actionRemove_triggered()
+{
+    QMessageBox msg(QMessageBox::Question, "Удаление",
+                    QString("Вы уверены, что хотите удалить строку: " + QString::number(active.row() + 1)),
+                    QMessageBox::Yes | QMessageBox::No);
+    msg.show();
+    if(msg.exec() == QMessageBox::Yes)
+    {
+        tableMap[activeTable]->removeRows(active.row(), 1);
+    }
+}
+
+void MainWindow::on_actionrevert_triggered()
+{
+    tableMap[activeTable]->revertAll();
 }

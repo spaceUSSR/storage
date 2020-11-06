@@ -14,7 +14,7 @@ class AddLine : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddLine(/*QSqlDatabase& db, QString& table, */QWidget *parent = nullptr);
+    explicit AddLine(QWidget *parent = nullptr);
     ~AddLine();
 
     QString Name();
@@ -24,18 +24,21 @@ public:
     QString Provider();
     QString Description();
 
+    void setName(QString);
+    void setPrice(int);
+    void setWeight(int);
+    void setDate(QDate);
+    void setProveder(QString);
+    void setDescription(QString);
+
 private slots:
     void on_nameEdit_textChanged(const QString &arg1);
 
     void on_providerEdit_textChanged(const QString &arg1);
 
-    void on_okButton_clicked();
-
 private:
     Ui::AddLine *ui;
     bool changed;
-//    QSqlDatabase db;
-//    QString table;
 
     QString name;
     int price;
@@ -44,9 +47,15 @@ private:
     QString provider;
     QString description;
 
+
     // QWidget interface
 protected:
     void closeEvent(QCloseEvent *event);
+
+    // QDialog interface
+public slots:
+    void accept();
+    void reject();
 };
 
 #endif // ADDLINE_H

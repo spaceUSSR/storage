@@ -4,19 +4,16 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QSqlError>
+#include <QPushButton>
 
-//#define INSERT_TO(table_name, values) ("INSERT " + (table_name) + " VALUES ( " + (values) + " );")
-//#define INSERT_STRING(string) (" '" + (string) + "' ")
-//#define INSERT_INT(num) (" " + (num) + " ")
-
-AddLine::AddLine(/*QSqlDatabase& db, QString& table, */QWidget *parent) :
+AddLine::AddLine(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddLine),
     changed(false)
 {
-//    this->db = db;
-//    this->table = table;
     ui->setupUi(this);
+    connect(ui->buttonBox->button(QDialogButtonBox::Ok), SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ui->buttonBox->button(QDialogButtonBox::Cancel), SIGNAL(clicked()), this, SLOT(reject()));
 }
 
 AddLine::~AddLine()
@@ -54,15 +51,45 @@ QString AddLine::Description()
     return description;
 }
 
+void AddLine::setName(QString name)
+{
+    ui->nameEdit->setText(name);
+}
+
+void AddLine::setPrice(int price)
+{
+    ui->priceSpinBox->setValue(price);
+}
+
+void AddLine::setWeight(int weight)
+{
+    ui->weightSpinBox->setValue(weight);
+}
+
+void AddLine::setDate(QDate date)
+{
+    ui->dateEdit->setDate(date);
+}
+
+void AddLine::setProveder(QString provider)
+{
+    ui->providerEdit->setText(provider);
+}
+
+void AddLine::setDescription(QString description)
+{
+    ui->plainTextEdit->setPlainText(description);
+}
+
 void AddLine::on_nameEdit_textChanged(const QString &arg1)
 {
-    ui->okButton->setEnabled(!arg1.isEmpty() & !ui->providerEdit->text().isEmpty());
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!arg1.isEmpty() & !ui->providerEdit->text().isEmpty());
     changed = true;
 }
 
 void AddLine::on_providerEdit_textChanged(const QString &arg1)
 {
-    ui->okButton->setEnabled(!arg1.isEmpty() & !ui->nameEdit->text().isEmpty());
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!arg1.isEmpty() & !ui->nameEdit->text().isEmpty());
     changed = true;
 }
 
@@ -85,25 +112,19 @@ void AddLine::closeEvent(QCloseEvent *event)
     }
 }
 
-void AddLine::on_okButton_clicked()
+void AddLine::accept()
 {
-
     name = ui->nameEdit->text();
     price = ui->priceSpinBox->value();
     weight = ui->weightSpinBox->value();
     date = ui->dateEdit->date();
     provider = ui->providerEdit->text();
     description = ui->plainTextEdit->toPlainText();
-//    QString queryStr = INSERT_TO(table, INSERT_STRING(ui->nameEdit->text()) + ", "
-//                                      + INSERT_INT(ui->priceSpinBox->text()) + ", "
-//                                      + INSERT_INT(ui->weightSpinBox->text()) + ", "
-//                                      + INSERT_STRING(ui->dateEdit->text()) + ", "
-//                                      + INSERT_STRING(ui->providerEdit->text()) + ", "
-//                                      + INSERT_STRING(ui->plainTextEdit->toPlainText()));
-//    QSqlQuery query(db);
-//    if(!query.exec(queryStr))
-//    {
-//        qDebug() << query.lastError().text();
-//    }
+    changed = false;
     close();
+}
+
+void AddLine::reject()
+{
+      close();
 }

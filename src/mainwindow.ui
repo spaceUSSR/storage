@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>955</width>
-     <height>25</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -49,6 +49,7 @@
     <addaction name="actionExit"/>
     <addaction name="actionLogin"/>
     <addaction name="actionSave"/>
+    <addaction name="actionrevert"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -95,7 +96,7 @@
   </action>
   <action name="actionRemove">
    <property name="text">
-    <string>Remove</string>
+    <string>Удалить</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -114,6 +115,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionrevert">
+   <property name="text">
+    <string>Отменить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
    </property>
   </action>
  </widget>

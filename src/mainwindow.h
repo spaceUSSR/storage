@@ -2,11 +2,14 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QModelIndex>
 #include <QSqlTableModel>
 #include <QStringListModel>
 #include <QList>
 #include <QString>
 #include <QMap>
+
+class AddLine;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -45,6 +48,14 @@ private slots:
 
     void on_actionSave_triggered();
 
+    void on_actionEdit_triggered();
+
+    void on_tableView_clicked(const QModelIndex &index);
+
+    void on_actionRemove_triggered();
+
+    void on_actionrevert_triggered();
+
 signals:
     void tableListChange(); //In database was added/deleted/renamed table
 
@@ -59,8 +70,12 @@ private:
     QStringList tablesList;
     QString activeTable;
     QMap<QString, QSqlTableModel*> tableMap; // key- table name, value - table model
+
+    QModelIndex active;
 private:
     QStringList getTablesList(); //get tables list for curent database
+    void setDataToDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index);
+    void getDataFromDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index);
     void createUI();
 };
 #endif // MAINWINDOW_H
