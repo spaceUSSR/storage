@@ -6,16 +6,16 @@
 #include <QDate>
 
 namespace Ui {
-class AddLine;
+class EditDialog;
 }
 
-class AddLine : public QDialog
+class EditDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AddLine(QWidget *parent = nullptr);
-    ~AddLine();
+    explicit EditDialog(QWidget *parent = nullptr);
+    ~EditDialog();
 
     QString Name();
     int Price();
@@ -37,7 +37,7 @@ private slots:
     void on_providerEdit_textChanged(const QString &arg1);
 
 private:
-    Ui::AddLine *ui;
+    Ui::EditDialog *ui;
     bool changed;
 
     QString name;

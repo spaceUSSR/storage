@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "addline.h"
+#include "EditDialog.h"
 #include "InpuDialog.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -12,7 +12,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , lmodel(new QStringListModel())
+    , lmodel(new QStringListModel(this))
 {
     ui->setupUi(this);
     createUI();
@@ -20,29 +20,29 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    database.close();
-    delete lmodel;
     delete ui;
 }
 
 /* Get tables list in curent database */
 QStringList MainWindow::getTablesList()
 {
-    QSqlQuery query = QSqlQuery(database);
+//    QSqlQuery query = QSqlQuery(database);
     QStringList list;
-    if(!query.exec("SHOW TABLES;"))
-    {
-        qDebug() << query.lastError().databaseText();
-        qDebug() << query.lastError().driverText();
-    }
-    while(query.next())
-    {
-        list << query.value(0).toString();
-    }
+//    if(!query.exec("\\dt+;"))
+//    {
+//        qDebug() << "Get tables error::" << query.lastError().databaseText();
+//        qDebug() << query.lastError().driverText();
+//    }
+//    while(query.next())
+//    {
+//        list << query.value(0).toString();
+//    }
+    list = database.tables();
+//    qDebug() << list;
     return list;
 }
 
-void MainWindow::setDataToDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index)
+void MainWindow::setDataToDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index)
 {
     int selectedRow = index.row();
     dialog->setName(model->data(model->index(selectedRow, 0)).toString());
@@ -53,7 +53,7 @@ void MainWindow::setDataToDialog(QSqlTableModel* model, AddLine * dialog, QModel
     dialog->setDescription(model->data(model->index(selectedRow, 5)).toString());
 }
 
-void MainWindow::getDataFromDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index)
+void MainWindow::getDataFromDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index)
 {
     int selectedRow = index.row();
     model->setData(model->index(selectedRow, 0), dialog->Name());
@@ -80,7 +80,7 @@ void MainWindow::slotTableChanged()
 void MainWindow::createUI()
 {
     //open database
-    database = QSqlDatabase::addDatabase("QMYSQL");
+    database = QSqlDatabase::addDatabase("QPSQL");
     database.setHostName("127.0.0.1");
     database.setDatabaseName("wms");
     database.setUserName("root");
@@ -92,6 +92,19 @@ void MainWindow::createUI()
     tablesList = getTablesList();
     lmodel->setStringList(tablesList);
     ui->listView->setModel(lmodel);
+
+
+    //create list view context menu action
+    deleteTable = new QAction("Удалить таблицу", this);
+    deleteTable->setEnabled(tablesList.length());
+    connect(deleteTable, SIGNAL(triggered()), this, SLOT(slotDeleteActiveTable()));
+
+   renameTable = new QAction("Переименовать", this);
+   connect(renameTable, SIGNAL(triggered()), this, SLOT(slotRenameActiveTable()));
+   renameTable->setEnabled(tablesList.length());
+
+    addTable = new QAction("Добавить", this);
+    connect(addTable, SIGNAL(triggered()), this, SLOT(on_actionNew_table_triggered()));
 
     //create context menu for the tables list
     ui->listView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -141,7 +154,7 @@ void MainWindow::on_actionNew_table_triggered()
 /* Add new line to model */
 void MainWindow::on_actionAdd_new_line_triggered()
 {
-    AddLine dialog;
+    EditDialog dialog;
     dialog.show();
     dialog.exec();
 
@@ -160,15 +173,6 @@ void MainWindow::on_actionAdd_new_line_triggered()
 void MainWindow::slotCustomMenuRequested(QPoint pos)
 {
     QMenu* menu = new QMenu(this);
-
-    QAction* deleteTable = new QAction("Удалить", this);
-    connect(deleteTable, SIGNAL(triggered()), this, SLOT(slotDeleteActiveTable()));
-
-    QAction* renameTable = new QAction("Переименовать", this);
-    connect(renameTable, SIGNAL(triggered()), this, SLOT(slotRenameActiveTable()));
-
-    QAction* addTable = new QAction("Добавить", this);
-    connect(addTable, SIGNAL(triggered()), this, SLOT(on_actionNew_table_triggered()));
 
     menu->addAction(addTable);
     menu->addAction(deleteTable);
@@ -206,7 +210,7 @@ void MainWindow::slotRenameActiveTable()
         QString table = dialog.getText();
         QSqlQuery query(database);
 
-        if(query.exec(QString("RENAME TABLE " + activeTable + " TO " + table)) && tableMap.contains(activeTable))
+        if(query.exec(QString("ALTER TABLE " + activeTable + " RENAME TO " + table)) && tableMap.contains(activeTable))
         {
             //rename table in the list
             int index = tablesList.indexOf(activeTable);
@@ -227,6 +231,7 @@ void MainWindow::slotRenameActiveTable()
         }
     }
 }
+
 /* Update tables list view */
 void MainWindow::slotUpdateListView()
 {
@@ -251,9 +256,9 @@ void MainWindow::on_listView_clicked(const QModelIndex &index)
 /* Save changes for active table */
 void MainWindow::on_actionSave_triggered()
 {
-    if(tableMap[activeTable]->submitAll())
+    if(!tableMap[activeTable]->submitAll())
     {
-        tableMap[activeTable]->database().commit();
+        qDebug() << tableMap[activeTable]->lastError().text();
     }
 }
 
@@ -268,7 +273,7 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionEdit_triggered()
 {
-    AddLine dialog;
+    EditDialog dialog;
     QSqlTableModel* model = tableMap[activeTable];
     setDataToDialog(model, &dialog, active);
 

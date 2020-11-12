@@ -9,7 +9,7 @@
 #include <QString>
 #include <QMap>
 
-class AddLine;
+class EditDialog;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -72,10 +72,14 @@ private:
     QMap<QString, QSqlTableModel*> tableMap; // key- table name, value - table model
 
     QModelIndex active;
+    QAction* deleteTable;
+    QAction* renameTable;
+    QAction* addTable;
+
 private:
     QStringList getTablesList(); //get tables list for curent database
-    void setDataToDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index);
-    void getDataFromDialog(QSqlTableModel* model, AddLine * dialog, QModelIndex& index);
+    void setDataToDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index);
+    void getDataFromDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index);
     void createUI();
 };
 #endif // MAINWINDOW_H

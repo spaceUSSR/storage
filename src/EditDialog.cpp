@@ -1,14 +1,14 @@
-#include "addline.h"
-#include "ui_addline.h"
+#include "EditDialog.h"
+#include "ui_EditDialog.h"
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QDebug>
 #include <QSqlError>
 #include <QPushButton>
 
-AddLine::AddLine(QWidget *parent) :
+EditDialog::EditDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::AddLine),
+    ui(new Ui::EditDialog),
     changed(false)
 {
     ui->setupUi(this);
@@ -16,84 +16,84 @@ AddLine::AddLine(QWidget *parent) :
     connect(ui->buttonBox->button(QDialogButtonBox::Cancel), SIGNAL(clicked()), this, SLOT(reject()));
 }
 
-AddLine::~AddLine()
+EditDialog::~EditDialog()
 {
     delete ui;
 }
 
-QString AddLine::Name()
+QString EditDialog::Name()
 {
     return name;
 }
 
-int AddLine::Price()
+int EditDialog::Price()
 {
     return price;
 }
 
-int AddLine::Weight()
+int EditDialog::Weight()
 {
     return weight;
 }
 
-QDate AddLine::Date()
+QDate EditDialog::Date()
 {
     return date;
 }
 
-QString AddLine::Provider()
+QString EditDialog::Provider()
 {
     return provider;
 }
 
-QString AddLine::Description()
+QString EditDialog::Description()
 {
     return description;
 }
 
-void AddLine::setName(QString name)
+void EditDialog::setName(QString name)
 {
     ui->nameEdit->setText(name);
 }
 
-void AddLine::setPrice(int price)
+void EditDialog::setPrice(int price)
 {
     ui->priceSpinBox->setValue(price);
 }
 
-void AddLine::setWeight(int weight)
+void EditDialog::setWeight(int weight)
 {
     ui->weightSpinBox->setValue(weight);
 }
 
-void AddLine::setDate(QDate date)
+void EditDialog::setDate(QDate date)
 {
     ui->dateEdit->setDate(date);
 }
 
-void AddLine::setProveder(QString provider)
+void EditDialog::setProveder(QString provider)
 {
     ui->providerEdit->setText(provider);
 }
 
-void AddLine::setDescription(QString description)
+void EditDialog::setDescription(QString description)
 {
     ui->plainTextEdit->setPlainText(description);
 }
 
-void AddLine::on_nameEdit_textChanged(const QString &arg1)
+void EditDialog::on_nameEdit_textChanged(const QString &arg1)
 {
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!arg1.isEmpty() & !ui->providerEdit->text().isEmpty());
     changed = true;
 }
 
-void AddLine::on_providerEdit_textChanged(const QString &arg1)
+void EditDialog::on_providerEdit_textChanged(const QString &arg1)
 {
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!arg1.isEmpty() & !ui->nameEdit->text().isEmpty());
     changed = true;
 }
 
-void AddLine::closeEvent(QCloseEvent *event)
+void EditDialog::closeEvent(QCloseEvent *event)
 {
     (void)event;
     if(changed)
@@ -112,7 +112,7 @@ void AddLine::closeEvent(QCloseEvent *event)
     }
 }
 
-void AddLine::accept()
+void EditDialog::accept()
 {
     name = ui->nameEdit->text();
     price = ui->priceSpinBox->value();
@@ -121,10 +121,12 @@ void AddLine::accept()
     provider = ui->providerEdit->text();
     description = ui->plainTextEdit->toPlainText();
     changed = false;
+    setResult(QDialog::Accepted);
     close();
 }
 
-void AddLine::reject()
+void EditDialog::reject()
 {
+    setResult(QDialog::Rejected);
       close();
 }
