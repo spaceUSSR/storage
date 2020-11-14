@@ -2,12 +2,16 @@
 #include "ui_mainwindow.h"
 #include "EditDialog.h"
 #include "InpuDialog.h"
+#include "logindialog.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
 #include <QMessageBox>
 #include <QAction>
+#include <QFile>
+
+#define DB_CONNECTION_ADRES "127.0.0.1"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -21,6 +25,11 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+bool MainWindow::isOpened()
+{
+    return opened;
 }
 
 /* Get tables list in curent database */
@@ -68,11 +77,11 @@ void MainWindow::getDataFromDialog(QSqlTableModel* model, EditDialog * dialog, Q
 void MainWindow::slotChangeActiveTable(QString& active)
 {
     activeTable = active;
-    ui->tableView->setModel(tableMap[active]);
-}
+    QSqlTableModel* model = tableMap[active];
 
-void MainWindow::slotTableChanged()
-{
+    ui->actionEdit->setEnabled(model->rowCount());
+    ui->actionRemove->setEnabled(model->rowCount());
+    ui->tableView->setModel(model);
 
 }
 
@@ -80,12 +89,8 @@ void MainWindow::slotTableChanged()
 void MainWindow::createUI()
 {
     //open database
-    database = QSqlDatabase::addDatabase("QPSQL");
-    database.setHostName("127.0.0.1");
-    database.setDatabaseName("wms");
-    database.setUserName("root");
-    database.setPassword("cvjktycrjt22");
-    if(!database.open())
+
+    if(!(opened = openConnection()))
         qDebug() << database.lastError();
 
     //init the tables list
@@ -116,8 +121,50 @@ void MainWindow::createUI()
             this, SLOT(slotUpdateListView()));
     connect(this, SIGNAL(activeTableChange(QString&)),
             this, SLOT(slotChangeActiveTable(QString&)));
-    connect(this, SIGNAL(tableChange()),
-            this, SLOT(slotTableChanged()));
+}
+
+bool MainWindow::openConnection()
+{
+
+    database = QSqlDatabase::addDatabase("QPSQL");
+    database.setHostName(DB_CONNECTION_ADRES);
+    database.setDatabaseName("wms");
+
+    QString login;
+    QString password;
+
+    QFile logFile("wms.log");
+    if(logFile.exists())
+    {
+        if(logFile.open(QFile::ReadOnly | QFile::Text))
+        {
+
+          login = static_cast<QString>(logFile.readLine()).remove('\n');
+          password = static_cast<QString>(logFile.readLine()).remove('\n');
+          logFile.close();
+
+        }
+    }
+    else
+    {
+        //if there wasn't connection
+        LoginDialog dialog;
+        dialog.show();
+
+        switch(dialog.exec())
+        {
+        case LoginDialog::Logined:
+            login = dialog.Login();
+            password = dialog.Password();
+
+
+            break;
+        default:
+            break;
+        }
+    }
+
+    return database.open(login, password);
 }
 
 
@@ -304,4 +351,9 @@ void MainWindow::on_actionRemove_triggered()
 void MainWindow::on_actionrevert_triggered()
 {
     tableMap[activeTable]->revertAll();
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    close();
 }

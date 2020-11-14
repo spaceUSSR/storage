@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>955</width>
-     <height>18</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -47,7 +47,6 @@
      <string>File</string>
     </property>
     <addaction name="actionExit"/>
-    <addaction name="actionLogin"/>
     <addaction name="actionSave"/>
     <addaction name="actionrevert"/>
    </widget>
@@ -73,15 +72,10 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>Выход</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
-   </property>
-  </action>
-  <action name="actionLogin">
-   <property name="text">
-    <string>Вход</string>
    </property>
   </action>
   <action name="actionAdd_new_line">
@@ -101,12 +95,15 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>О программе</string>
    </property>
   </action>
   <action name="actionNew_table">
    <property name="text">
-    <string>New table</string>
+    <string>Содать таблицу</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
    </property>
   </action>
   <action name="actionSave">

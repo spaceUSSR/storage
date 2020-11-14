@@ -23,6 +23,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    bool isOpened();
 
 private slots:
     void on_actionAbout_triggered();
@@ -43,9 +44,6 @@ private slots:
 
     void slotChangeActiveTable(QString&); //change active table for model
 
-    void slotTableChanged();
-
-
     void on_actionSave_triggered();
 
     void on_actionEdit_triggered();
@@ -55,6 +53,8 @@ private slots:
     void on_actionRemove_triggered();
 
     void on_actionrevert_triggered();
+
+    void on_actionExit_triggered();
 
 signals:
     void tableListChange(); //In database was added/deleted/renamed table
@@ -76,10 +76,13 @@ private:
     QAction* renameTable;
     QAction* addTable;
 
+    bool opened;
+
 private:
     QStringList getTablesList(); //get tables list for curent database
     void setDataToDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index);
     void getDataFromDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index);
     void createUI();
+    bool openConnection();
 };
 #endif // MAINWINDOW_H

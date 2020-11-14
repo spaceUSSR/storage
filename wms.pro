@@ -11,16 +11,19 @@ CONFIG += c++11
 SOURCES += \
     src/EditDialog.cpp \
     src/InpuDialog.cpp \
+    src/logindialog.cpp \
     src/main.cpp \
     src/mainwindow.cpp
 
 HEADERS += \
     src/EditDialog.h \
     src/InpuDialog.h \
+    src/logindialog.h \
     src/mainwindow.h
 
 FORMS += \
     src/EditDialog.ui \
+    src/logindialog.ui \
     src/mainwindow.ui
 
 # Default rules for deployment.
