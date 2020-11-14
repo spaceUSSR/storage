@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "EditDialog.h"
-#include "InpuDialog.h"
+#include "InputDialog.h"
 #include "logindialog.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -30,25 +30,6 @@ MainWindow::~MainWindow()
 bool MainWindow::isOpened()
 {
     return opened;
-}
-
-/* Get tables list in curent database */
-QStringList MainWindow::getTablesList()
-{
-//    QSqlQuery query = QSqlQuery(database);
-    QStringList list;
-//    if(!query.exec("\\dt+;"))
-//    {
-//        qDebug() << "Get tables error::" << query.lastError().databaseText();
-//        qDebug() << query.lastError().driverText();
-//    }
-//    while(query.next())
-//    {
-//        list << query.value(0).toString();
-//    }
-    list = database.tables();
-//    qDebug() << list;
-    return list;
 }
 
 void MainWindow::setDataToDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index)
@@ -81,6 +62,7 @@ void MainWindow::slotChangeActiveTable(QString& active)
 
     ui->actionEdit->setEnabled(model->rowCount());
     ui->actionRemove->setEnabled(model->rowCount());
+    ui->actionAdd_new_line->setEnabled(true);
     ui->tableView->setModel(model);
 
 }
@@ -94,7 +76,7 @@ void MainWindow::createUI()
         qDebug() << database.lastError();
 
     //init the tables list
-    tablesList = getTablesList();
+    tablesList = database.tables();
     lmodel->setStringList(tablesList);
     ui->listView->setModel(lmodel);
 
@@ -121,8 +103,14 @@ void MainWindow::createUI()
             this, SLOT(slotUpdateListView()));
     connect(this, SIGNAL(activeTableChange(QString&)),
             this, SLOT(slotChangeActiveTable(QString&)));
-}
 
+    //Default disable action
+    ui->actionEdit->setEnabled(false);
+    ui->actionAdd_new_line->setEnabled(false);
+    ui->actionRemove->setEnabled(false);
+}
+/* Open connection with reading of login and password from logfile,
+ * if it exists, or  from login dialog */
 bool MainWindow::openConnection()
 {
 
@@ -192,6 +180,8 @@ void MainWindow::on_actionNew_table_triggered()
         else
         {
             tablesList << table;
+            renameTable->setEnabled(true);
+            deleteTable->setEnabled(true);
         }
         emit tableListChange();
     }
@@ -203,17 +193,29 @@ void MainWindow::on_actionAdd_new_line_triggered()
 {
     EditDialog dialog;
     dialog.show();
-    dialog.exec();
+    switch(dialog.exec())
+    {
+    case QDialog::Accepted:
+    {
+        QSqlTableModel* model = tableMap[activeTable];
+        int row = model->rowCount();
+        model->insertRows(row, 1);
+        model->setData(model->index(row, 0), dialog.Name());
+        model->setData(model->index(row, 1), dialog.Price());
+        model->setData(model->index(row, 2), dialog.Weight());
+        model->setData(model->index(row, 3), dialog.Date());
+        model->setData(model->index(row, 4), dialog.Provider());
+        model->setData(model->index(row, 5), dialog.Description());
 
-    QSqlTableModel* model = tableMap[activeTable];
-    int row = model->rowCount();
-    model->insertRows(row, 1);
-    model->setData(model->index(row, 0), dialog.Name());
-    model->setData(model->index(row, 1), dialog.Price());
-    model->setData(model->index(row, 2), dialog.Weight());
-    model->setData(model->index(row, 3), dialog.Date());
-    model->setData(model->index(row, 4), dialog.Provider());
-    model->setData(model->index(row, 5), dialog.Description());
+        //Lines is more than 0, it allow to delete or edit line
+        ui->actionEdit->setEnabled(true);
+        ui->actionRemove->setEnabled(true);
+        break;
+    }
+
+    default:
+        break;
+    }
 }
 
 /* Open context menu for listView */
@@ -237,6 +239,11 @@ void MainWindow::slotDeleteActiveTable()
         tablesList.removeAll(activeTable);
         delete tableMap[activeTable];
         tableMap.remove(activeTable);
+
+        //Default disable action
+        ui->actionEdit->setEnabled(false);
+        ui->actionAdd_new_line->setEnabled(false);
+        ui->actionRemove->setEnabled(false);
 
         emit tableListChange();
     }
@@ -344,7 +351,12 @@ void MainWindow::on_actionRemove_triggered()
     msg.show();
     if(msg.exec() == QMessageBox::Yes)
     {
-        tableMap[activeTable]->removeRows(active.row(), 1);
+        QSqlTableModel* model= tableMap[activeTable];
+        model->removeRows(active.row(), 1);
+
+        //Disable actions if lines is less then 1
+        ui->actionEdit->setEnabled(model->rowCount());
+        ui->actionRemove->setEnabled(model->rowCount());
     }
 }
 

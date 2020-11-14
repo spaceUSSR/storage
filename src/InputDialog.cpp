@@ -1,5 +1,5 @@
 #include <QRegExpValidator>
-#include "InpuDialog.h"
+#include "InputDialog.h"
 #include <QLabel>
 #include <QLineEdit>
 #include <QDialogButtonBox>
@@ -36,4 +36,5 @@ void InputDialog::createUI(QString lableText, QRegExpValidator* validator)
 
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
 }

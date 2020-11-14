@@ -10,14 +10,14 @@ CONFIG += c++11
 
 SOURCES += \
     src/EditDialog.cpp \
-    src/InpuDialog.cpp \
+    src/InputDialog.cpp \
     src/logindialog.cpp \
     src/main.cpp \
     src/mainwindow.cpp
 
 HEADERS += \
     src/EditDialog.h \
-    src/InpuDialog.h \
+    src/InputDialog.h \
     src/logindialog.h \
     src/mainwindow.h
 

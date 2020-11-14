@@ -79,10 +79,13 @@ private:
     bool opened;
 
 private:
-    QStringList getTablesList(); //get tables list for curent database
+
     void setDataToDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index);
+
     void getDataFromDialog(QSqlTableModel* model, EditDialog * dialog, QModelIndex& index);
+
     void createUI();
+
     bool openConnection();
 };
 #endif // MAINWINDOW_H
