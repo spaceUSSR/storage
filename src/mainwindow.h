@@ -87,5 +87,7 @@ private:
     void createUI();
 
     bool openConnection();
+
+    QStringList tables();
 };
 #endif // MAINWINDOW_H

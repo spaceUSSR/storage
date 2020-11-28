@@ -76,7 +76,7 @@ void MainWindow::createUI()
         qDebug() << database.lastError();
 
     //init the tables list
-    tablesList = database.tables();
+    tablesList = tables();
     lmodel->setStringList(tablesList);
     ui->listView->setModel(lmodel);
 
@@ -114,7 +114,7 @@ void MainWindow::createUI()
 bool MainWindow::openConnection()
 {
 
-    database = QSqlDatabase::addDatabase("QPSQL");
+    database = QSqlDatabase::addDatabase("QMYSQL");
     database.setHostName(DB_CONNECTION_ADRES);
     database.setDatabaseName("wms");
 
@@ -122,6 +122,8 @@ bool MainWindow::openConnection()
     QString password;
 
     QFile logFile("wms.log");
+
+    //Open exists connection logfile
     if(logFile.exists())
     {
         if(logFile.open(QFile::ReadOnly | QFile::Text))
@@ -144,15 +146,38 @@ bool MainWindow::openConnection()
         case LoginDialog::Logined:
             login = dialog.Login();
             password = dialog.Password();
-
-
             break;
-        default:
-            break;
+
+            default:
+                break;
         }
     }
 
-    return database.open(login, password);
+    bool opened = database.open(login, password);
+
+    if(opened)
+    {
+
+        //Create last connection log file
+        if(logFile.open(QFile::WriteOnly | QIODevice::Text))
+        {
+            QTextStream fout(&logFile);
+            fout << "Login: " << login << "\n";
+            fout << "Password: " << password << "\n";
+        }
+    }
+        return opened;
+    }
+
+QStringList MainWindow::tables()
+{
+    QSqlQuery query("show tables", database);
+    QStringList list;
+    while(query.next())
+    {
+        list << query.value(0).toString();
+    }
+    return list;
 }
 
 
