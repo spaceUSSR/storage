@@ -71,7 +71,6 @@ void MainWindow::slotChangeActiveTable(QString& active)
 void MainWindow::createUI()
 {
     //open database
-
     if(!(opened = openConnection()))
         qDebug() << database.lastError();
 
@@ -185,19 +184,14 @@ void MainWindow::on_actionNew_table_triggered()
 {
     InputDialog dialog("Название новой таблицы:", QRegExp("^[a-zA-Z0-9]+$"));
     dialog.show();
+
     if(dialog.exec() == QDialog::Accepted)
     {
         QString table = dialog.getText();
         QSqlQuery query(database);
-        QString querystr = "CREATE TABLE " + table +
-                " ("
-                "Название VARCHAR(30), "
-                "Цена INT, "
-                "Вес INT, "
-                "Дата DATE,"
-                "Поставщик VARCHAR(30), "
-                "Описание TEXT "
-                ")";
+        QString querystr = "create table %1 ( Название VARCHAR(30), Цена INT, Вес INT, Дата DATE, Поставщик VARCHAR(30), Описание TEXT)";
+        querystr.arg(table);
+
         if(!query.exec(querystr))
         {
             qDebug() << "Error::" << query.lastError().databaseText();
