@@ -17,6 +17,10 @@ namespace Kurs_datebase
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new LoginForm1());
+            if(LoginForm1.status == "running")
+            {
+                Application.Run(new WorkingWithDB());
+            }
         }
     }
 }

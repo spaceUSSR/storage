@@ -38,7 +38,7 @@ namespace Kurs_datebase
         Point lastPoint;
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left)
             {
                 this.Left += e.X - lastPoint.X;
                 this.Top += e.Y - lastPoint.Y;
@@ -48,6 +48,23 @@ namespace Kurs_datebase
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
             lastPoint = new Point(e.X, e.Y);
+        }
+
+        //работа с окном авторизации
+        static public string status;
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if ((loginField.Text == "12345") && (passField.Text == "12345"))
+            {
+                Close();
+                status = "running";
+            }
+            else
+            {
+                MessageBox.Show("Неверный логин или пароль", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
     }
 }
